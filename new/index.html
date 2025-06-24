@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="hu" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="WinMix - Professional Football Match Prediction System with Advanced Analytics">
+    
+    <title>WinMix - Professional Football Prediction System</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    
+    <!-- Stylesheets -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+        }
+        
+        .prediction-card {
+            animation: fadeIn 0.5s ease-out forwards;
+            opacity: 0;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #CCFF00;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white antialiased">
+    <!-- Loading overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-gray-800 rounded-lg p-8 flex flex-col items-center space-y-4">
+            <div class="loading-spinner"></div>
+            <div class="text-white text-lg">Predikciók futtatása...</div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-gray-800 border-b border-gray-700 sticky top-0 z-40">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo and title -->
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-yellow-400 rounded-lg flex items-center justify-center">
+                            <i class="ri-football-line text-black"></i>
+                        </div>
+                        <h1 class="text-xl font-bold text-white">WinMix</h1>
+                        <span class="text-sm text-gray-400">v2.0</span>
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="hidden lg:flex items-center space-x-6">
+                    <a href="#predictions" class="text-gray-300 hover:text-white transition-colors">
+                        <i class="ri-brain-line mr-2"></i>
+                        Predikciók
+                    </a>
+                    <a href="#analytics" class="text-gray-300 hover:text-white transition-colors">
+                        <i class="ri-bar-chart-line mr-2"></i>
+                        Analitika
+                    </a>
+                    <a href="#history" class="text-gray-300 hover:text-white transition-colors">
+                        <i class="ri-history-line mr-2"></i>
+                        Előzmények
+                    </a>
+                </nav>
+
+                <!-- User controls -->
+                <div class="flex items-center space-x-4">
+                    <button id="loginBtn" class="px-4 py-2 bg-yellow-400 text-black font-bold rounded-lg hover:bg-yellow-300 transition-colors">
+                        <i class="ri-login-line mr-2"></i>
+                        Bejelentkezés
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Error container -->
+        <div id="errorContainer" class="mb-6 hidden"></div>
+
+        <!-- Welcome section -->
+        <section id="welcome" class="mb-12 text-center">
+            <h2 class="text-4xl font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent mb-4">
+                Professional Football Prediction System
+            </h2>
+            <p class="text-xl text-gray-400 max-w-3xl mx-auto mb-8">
+                Fejlett gépi tanulási algoritmusokkal és statisztikai elemzéssel 
+                támogatott labdarúgó mérkőzés predikciós rendszer.
+            </p>
+            <div class="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-400">
+                <div class="flex items-center">
+                    <i class="ri-brain-line text-yellow-400 mr-2"></i>
+                    7 predikciós algoritmus
+                </div>
+                <div class="flex items-center">
+                    <i class="ri-database-line text-yellow-400 mr-2"></i>
+                    82,000+ mérkőzés adat
+                </div>
+                <div class="flex items-center">
+                    <i class="ri-line-chart-line text-yellow-400 mr-2"></i>
+                    Valós idejű analitika
+                </div>
+            </div>
+        </section>
+
+        <!-- Match selection section -->
+        <section id="matchSelection" class="mb-12">
+            <div class="bg-gray-800 rounded-lg p-6">
+                <div id="matchContainer">
+                    <!-- Match selector will be rendered here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Prediction settings -->
+        <section id="predictionSettings" class="mb-12">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Algorithm selection -->
+                <div class="bg-gray-800 rounded-lg p-6">
+                    <h3 class="text-lg font-semibold text-white mb-4">Algoritmus kiválasztás</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Predikciós algoritmus</label>
+                            <select id="algorithmSelect" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent">
+                                <!-- Options will be populated by JavaScript -->
+                            </select>
+                            <div id="algorithmDescription" class="text-xs text-gray-400 mt-2 italic"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick stats -->
+                <div class="bg-gray-800 rounded-lg p-6">
+                    <h3 class="text-lg font-semibold text-white mb-4">Gyors statisztikák</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-yellow-400">0</div>
+                            <div class="text-sm text-gray-400">Predikciók</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-yellow-400">0%</div>
+                            <div class="text-sm text-gray-400">Átl. megbízhatóság</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Prediction controls -->
+        <section id="controls" class="mb-12">
+            <div class="text-center">
+                <button id="predictionBtn" class="px-8 py-4 bg-yellow-400 text-black font-bold text-lg rounded-lg hover:bg-yellow-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    <i class="ri-play-line mr-2"></i>
+                    Predikciók futtatása (0)
+                </button>
+                <p class="text-sm text-gray-400 mt-4">
+                    Ctrl+Enter: Gyors futtatás
+                </p>
+            </div>
+        </section>
+
+        <!-- Results section -->
+        <section id="results" class="mb-12">
+            <div id="resultsContainer">
+                <!-- Results will be rendered here -->
+            </div>
+        </section>
+
+        <!-- Charts section -->
+        <section id="analytics" class="mb-12">
+            <div id="chartsContainer">
+                <!-- Charts will be rendered here -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 border-t border-gray-700 py-8">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <div class="flex items-center space-x-2 mb-4">
+                        <div class="w-6 h-6 bg-yellow-400 rounded flex items-center justify-center">
+                            <i class="ri-football-line text-black text-sm"></i>
+                        </div>
+                        <span class="font-semibold">WinMix</span>
+                    </div>
+                    <p class="text-gray-400 text-sm">
+                        Professional football match prediction system with advanced analytics and machine learning algorithms.
+                    </p>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">Szolgáltatások</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Mérkőzés predikciók</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Statisztikai elemzés</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Gépi tanulás</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Vizuális analitika</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">Támogatás</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Dokumentáció</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">API referencia</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Közösség</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Kapcsolat</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-sm text-gray-400">
+                <p>&copy; 2024 WinMix. Minden jog fenntartva.</p>
+                <p class="mt-2">
+                    Made with <i class="ri-heart-fill text-red-500"></i> for football analytics
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script type="module" src="/main.ts"></script>
+</body>
+</html>

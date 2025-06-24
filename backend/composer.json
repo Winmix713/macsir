@@ -34,9 +34,9 @@
     "scripts": {
         "test": "phpunit",
         "test-coverage": "phpunit --coverage-html coverage",
-        "phpstan": "phpstan analyse",
-        "cs-check": "phpcs",
-        "cs-fix": "phpcbf",
+        "phpstan": "phpstan analyse -c phpstan.neon",
+        "cs-check": "phpcs --standard=PSR12 src/",
+        "cs-fix": "phpcbf --standard=PSR12 src/",
         "start": "php -S localhost:8000 -t public",
         "migrate": "php bin/migrate.php"
     },
